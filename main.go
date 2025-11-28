@@ -6,14 +6,15 @@ import (
 )
 
 func main() {
-	fmt.Println(Version())
+	version, main := Version()
+	fmt.Println(version, main)
 }
 
-func Version() string {
+func Version() (string, interface{}) {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		// Goモジュールが無効など
-		return "(devel)"
+		return "(devel)", nil
 	}
-	return info.Main.Version
+	return info.Main.Version, info.Main
 }
