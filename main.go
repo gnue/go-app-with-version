@@ -6,15 +6,31 @@ import (
 )
 
 func main() {
-	version, main := Version()
-	fmt.Println(version, main)
+	fmt.Println(Version())
 }
 
-func Version() (string, interface{}) {
+type BuildSetting []debug.BuildSetting
+
+func Version() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		// Goモジュールが無効など
-		return "(devel)", nil
+		return "(devel)"
 	}
-	return info.Main.Version, info.Main
+	ver := info.Main.Version
+	rev, ok := GetSetting(info.Settings, "vcs.revision")
+	if ok {
+		return fmt.Sprintf("%s(%s)", ver, rev[:6])
+	}
+	return ver
+}
+
+func GetSetting(settings []debug.BuildSetting, key string) (string, bool) {
+	for _, setting := range settings {
+		if setting.Key == key {
+			return setting.Value, true
+		}
+	}
+
+	return "", false
 }
