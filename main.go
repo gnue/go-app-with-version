@@ -6,23 +6,38 @@ import (
 )
 
 func main() {
-	fmt.Println(Version())
+	ver, rev := Version()
+
+	if rev == "" {
+		fmt.Println(ver)
+	} else {
+		fmt.Sprintf("%s(%s)", ver, rev[:6])
+	}
+	fmt.Println()
 }
 
-type BuildSetting []debug.BuildSetting
-
-func Version() string {
+func Version() (string, string) {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		// Goモジュールが無効など
-		return "(devel)"
+		return "(devel)", ""
 	}
 	ver := info.Main.Version
-	rev, ok := GetSetting(info.Settings, "vcs.revision")
-	if ok {
-		return fmt.Sprintf("%s(%s)", ver, rev[:6])
+
+	PrintSetting(info.Settings)
+	for _, setting := range info.Settings {
+		if setting.Key == "vcs.revision" {
+			return ver, setting.Value
+		}
 	}
-	return ver
+
+	return ver, ""
+}
+
+func PrintSetting(settings []debug.BuildSetting) {
+	for _, setting := range settings {
+		fmt.Println(setting.Key, " = ", setting.Value)
+	}
 }
 
 func GetSetting(settings []debug.BuildSetting, key string) (string, bool) {
